@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Проекты — Дашборд</title>
+<style>
+:root{--bg:#0b1020;--card:#121832;--muted:#9aa4c7;--text:#e8ecff;--accent:#6aa5ff;--accent2:#9bffd6;--danger:#ff7a7a;--warn:#ffd36a;--ok:#67e8a5;}
+*{box-sizing:border-box}
+body{background:linear-gradient(180deg,#0a0f1d,#0d142a);color:var(--text);font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;margin:0;}
+.container{max-width:1200px;margin:24px auto;padding:0 16px;}
+h1{font-weight:800;letter-spacing:.2px;margin:0 0 12px}
+.controls{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0 20px}
+input[type=search]{flex:1;min-width:260px;padding:12px 14px;border-radius:12px;border:1px solid #2a3357;background:#0f1530;color:var(--text);outline:0}
+select,button{padding:12px 14px;border-radius:12px;border:1px solid #2a3357;background:#0f1530;color:var(--text)}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0 24px}
+.card{background:linear-gradient(180deg,#121a3a,#101633);border:1px solid #1e2954;border-radius:16px;padding:16px;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+.kpi{font-size:28px;font-weight:800;margin-top:6px}
+.badge{font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid #33407a;color:#c8d1ff;background:#0e1533;display:inline-block}
+.projects{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.project{background:linear-gradient(180deg,#131a3c,#0f1531);border:1px solid #1e2954;border-radius:16px;padding:14px}
+.project h3{margin:0 0 6px}
+.progress{height:10px;background:#1a254f;border-radius:999px;overflow:hidden;margin:8px 0 10px}
+.progress>span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#3dd9b4);width:0%}
+.stages{display:grid;grid-template-columns:1.2fr .7fr .7fr .8fr;gap:8px;align-items:center;font-size:13px}
+.stage{display:contents}
+.stage div{padding:8px 10px;background:#0c1230;border:1px solid #1a2552;border-radius:10px}
+.stage .done{border-color:#1e8f64;background:#0f1f2b}
+.stage .warn{border-color:#b88a2d}
+.stage .todo{border-color:#3b4577}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:11px;border:1px solid #33407a;background:#0e1533;color:#c8d1ff;border-radius:999px;padding:4px 8px}
+.timeline{margin-top:22px;background:#0f1530;border:1px solid #1e2954;border-radius:16px;padding:16px;overflow:auto}
+.tl-row{display:flex;align-items:center;gap:12px;margin:8px 0}
+.tl-row .label{min-width:220px;font-weight:600}
+.tl-track{position:relative;height:24px;flex:1;background:#0c1230;border:1px solid #1a2552;border-radius:999px}
+.tl-bar{position:absolute;height:100%;border-radius:999px;background:linear-gradient(90deg,#5aa2ff,#9bfcd7)}
+.scale{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px}
+footer{margin:28px 0 8px;color:#9aa4c7;font-size:12px}
+@media (max-width:960px){.cards{grid-template-columns:repeat(2,1fr)}.projects{grid-template-columns:1fr}.tl-row .label{min-width:140px}}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Проекты — Дашборд</h1>
+  <div class="controls">
+    <input id="search" type="search" placeholder="Поиск по проектам, этапам и комментариям…" />
+    <select id="status">
+      <option value="all">Все статусы</option>
+      <option value="done">Завершён</option>
+      <option value="progress">В процессе</option>
+      <option value="planned">Планируется</option>
+    </select>
+    <button id="reset">Сброс</button>
+  </div>
+  <div class="cards">
+    <div class="card"><div class="badge">Проектов</div><div class="kpi" id="kpi-total">—</div></div>
+    <div class="card"><div class="badge">Завершено</div><div class="kpi" id="kpi-done">—</div></div>
+    <div class="card"><div class="badge">В процессе</div><div class="kpi" id="kpi-progress">—</div></div>
+    <div class="card"><div class="badge">Планируется</div><div class="kpi" id="kpi-planned">—</div></div>
+  </div>
+  <div class="projects" id="projects"></div>
+  <div class="timeline" id="timeline"></div>
+  <footer>Сделано для XFinity Solutions · Обновлено автоматически из данных JSON</footer>
+</div>
+<script>const DATA = [{"Название": "Каналопромывочная Машина и Илосос", "Этап работы": "Получение документов для оплаты и согласование документации", "Выполнения%": "100%", "Комментарий": "", "Период": "13.06.2025 - 25.07.2025"}, {"Название": "", "Этап работы": "Оплата", "Выполнения%": "100%", "Комментарий": "", "Период": "25.07.2025"}, {"Название": "", "Этап работы": "Отправка", "Выполнения%": "80%", "Комментарий": "", "Период": "30.07.2025 - 26.08.2025"}, {"Название": "", "Этап работы": "Растаможка", "Выполнения%": "0%", "Комментарий": "", "Период": "26.08.2025 - 26.09.2025"}, {"Название": "Теленипекция", "Этап работы": "Получение документов для оплаты и согласование документации", "Выполнения%": "100%", "Комментарий": "", "Период": "13.06.2025 - 12.08.2025"}, {"Название": "", "Этап работы": "Оплата", "Выполнения%": "100%", "Комментарий": "", "Период": "12.08.2025"}, {"Название": "", "Этап работы": "Отправка", "Выполнения%": "100%", "Комментарий": "", "Период": "13.08.2025 - 14.08.2025"}, {"Название": "", "Этап работы": "Растаможка", "Выполнения%": "100%", "Комментарий": "", "Период": "14.08.2025 - 22.08.2025"}, {"Название": "Конвеер", "Этап работы": "Получение документов для оплаты и согласование документации", "Выполнения%": "100%", "Комментарий": "", "Период": "13.06.2025 - 22.08.2025"}, {"Название": "", "Этап работы": "Оплата", "Выполнения%": "100%", "Комментарий": "", "Период": "22.08.2025"}, {"Название": "", "Этап работы": "Отправка (согласование)", "Выполнения%": "0%", "Комментарий": "Стоимость Авиадоставки 9000 EUR, Срок доставки до 7 дней", "Период": "Планирование"}, {"Название": "", "Этап работы": "Растаможка", "Выполнения%": "0%", "Комментарий": "", "Период": "Планирование"}, {"Название": "Оборудование для санации труб", "Этап работы": "Получение документов для оплаты и согласование документации", "Выполнения%": "100%", "Комментарий": "", "Период": "13.06.2025 - 22.08.2025"}, {"Название": "", "Этап работы": "Оплата", "Выполнения%": "100%", "Комментарий": "", "Период": "22.08.2025"}, {"Название": "", "Этап работы": "Отправка (согласование)", "Выполнения%": "0%", "Комментарий": "Стоимость Авиадоставки 2 500 EUR, Срок доставки до 7 дней", "Период": "Планирование"}, {"Название": "", "Этап работы": "Растаможка", "Выполнения%": "0%", "Комментарий": "", "Период": "Планирование"}, {"Название": "Лебедка Багела", "Этап работы": "Получение документов для оплаты и согласование документации", "Выполнения%": "50%", "Комментарий": "", "Период": "13.06.2025 - 22.08.2025"}, {"Название": "", "Этап работы": "Оплата", "Выполнения%": "10%", "Комментарий": "", "Период": "22.08.2025"}, {"Название": "", "Этап работы": "Отправка (согласование)", "Выполнения%": "0%", "Комментарий": "Стоимость доставки 7800 EUR, Срок доставки до 45 дней", "Период": "Планирование"}, {"Название": "", "Этап работы": "Растаможка", "Выполнения%": "0%", "Комментарий": "", "Период": "Планирование"}];</script>
+<script>
+function parsePct(s){if(!s)return 0;const m=/([0-9]{1,3})/.exec(String(s));return m?Math.max(0,Math.min(100,parseInt(m[1],10))):0;}
+function parseDate(s){if(!s)return null;const [dd,mm,yyyy]=s.split('.');if(!yyyy) return null;return new Date(parseInt(yyyy,10),parseInt(mm,10)-1,parseInt(dd,10));}
+function parsePeriod(p){if(!p||p.toLowerCase()==='планирование') return null; if(p.includes('-')){let [a,b]=p.split('-').map(x=>x.trim()); return {start:parseDate(a),end:parseDate(b)};} else {let d=parseDate(p.trim()); return d?{start:d,end:d}:null;}}
+function normalize(raw){
+  let current=null;
+  return raw.map(r=>{
+    if(r['Название'] && r['Название'].trim()!==''){ current=r['Название'].trim(); }
+    return {
+      project: current || 'Без названия',
+      stage: r['Этап работы']?.trim()||'',
+      percent: parsePct(r['Выполнения%']),
+      period: r['Период']||'',
+      comment: r['Комментарий']||''
+    };
+  });
+}
+function groupByProject(rows){
+  const map=new Map();
+  for(const r of rows){
+    if(!map.has(r.project)) map.set(r.project, []);
+    map.get(r.project).push(r);
+  }
+  return Array.from(map.entries()).map(([project,rows])=>{
+    const avg = rows.reduce((s,r)=>s+r.percent,0)/rows.length;
+    const allZero = rows.every(r=>r.percent===0);
+    const allHundred = rows.every(r=>r.percent===100);
+    const status = allHundred ? 'done' : (allZero ? 'planned' : 'progress');
+    return {project, rows, avg:Math.round(avg), status};
+  }).sort((a,b)=>a.project.localeCompare(b.project,'ru'));
+}
+
+function buildKPIs(groups){
+  const total = groups.length;
+  const done = groups.filter(g=>g.status==='done').length;
+  const planned = groups.filter(g=>g.status==='planned').length;
+  const progress = total - done - planned;
+  document.getElementById('kpi-total').textContent = total;
+  document.getElementById('kpi-done').textContent = done;
+  document.getElementById('kpi-progress').textContent = progress;
+  document.getElementById('kpi-planned').textContent = planned;
+}
+
+function stageChipClass(p){ if(p>=100) return 'done'; if(p===0) return 'todo'; if(p<100 && p>=80) return 'done'; if(p>0 && p<50) return 'warn'; return ''; }
+
+function renderProjects(groups){
+  const root = document.getElementById('projects');
+  root.innerHTML = '';
+  for(const g of groups){
+    const el = document.createElement('div');
+    el.className='project';
+    el.innerHTML = `
+      <h3>${g.project}</h3>
+      <div class="progress"><span style="width:${g.avg}%"></span></div>
+      <div class="tags">
+        <span class="tag">Готовность: ${g.avg}%</span>
+        <span class="tag">Статус: ${g.status==='done'?'Завершён':g.status==='planned'?'Планируется':'В процессе'}</span>
+      </div>
+      <div class="stages" style="margin-top:10px">
+        <div class="badge">Этап</div>
+        <div class="badge">Готовность</div>
+        <div class="badge">Период</div>
+        <div class="badge">Комментарий</div>
+        ${g.rows.map(r=>`
+          <div class="stage">
+            <div>${r.stage}</div>
+            <div class="${stageChipClass(r.percent)}">${r.percent}%</div>
+            <div>${r.period||'—'}</div>
+            <div>${r.comment||'—'}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    root.appendChild(el);
+  }
+}
+
+function renderTimeline(groups){
+  // collect all tasks with periods
+  const tasks=[];
+  for(const g of groups){
+    for(const r of g.rows){
+      const period = parsePeriod(r.period);
+      if(period && period.start && period.end){
+        tasks.push({project:g.project, stage:r.stage, start:period.start, end:period.end});
+      }
+    }
+  }
+  const container = document.getElementById('timeline');
+  container.innerHTML = '';
+  if(tasks.length===0){ container.innerHTML = '<div class="badge">Нет дат для построения таймлайна</div>'; return; }
+  const minDate = new Date(Math.min(...tasks.map(t=>t.start.getTime())));
+  const maxDate = new Date(Math.max(...tasks.map(t=>t.end.getTime())));
+  const totalDays = Math.max(1, Math.ceil((maxDate - minDate)/86400000));
+  const pxPerDay = totalDays > 140 ? 6 : 10; // fit better
+  const width = Math.max(600, totalDays * pxPerDay);
+
+  // scale header
+  const scale = document.createElement('div');
+  scale.className='scale';
+  const fmt = d=> d.toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit', year:'numeric'});
+  scale.innerHTML = `<span>${fmt(minDate)}</span><span>${fmt(maxDate)}</span>`;
+  container.appendChild(scale);
+
+  const byProject = {};
+  for(const t of tasks){ if(!byProject[t.project]) byProject[t.project]=[]; byProject[t.project].push(t); }
+  for(const [project,rows] of Object.entries(byProject)){
+    const row = document.createElement('div');
+    row.className='tl-row';
+    row.innerHTML = `<div class="label">${project}</div><div class="tl-track" style="width:${width}px"></div>`;
+    container.appendChild(row);
+    const track = row.querySelector('.tl-track');
+    for(const r of rows){
+      const offsetDays = Math.max(0, Math.floor((r.start - minDate)/86400000));
+      const lenDays = Math.max(1, Math.ceil((r.end - r.start)/86400000)+1);
+      const bar = document.createElement('div');
+      bar.className='tl-bar';
+      bar.style.left = (offsetDays*pxPerDay)+'px';
+      bar.style.width = (lenDays*pxPerDay)+'px';
+      bar.title = `${r.stage}: ${fmt(r.start)} — ${fmt(r.end)}`;
+      track.appendChild(bar);
+    }
+  }
+}
+
+(function(){
+  const rows = normalize(DATA);
+  let groupsAll = groupByProject(rows);
+
+  const search = document.getElementById('search');
+  const statusSel = document.getElementById('status');
+  const resetBtn = document.getElementById('reset');
+
+  function applyFilters(){
+    let q = search.value.trim().toLowerCase();
+    let st = statusSel.value;
+    let groups = groupsAll.filter(g=>{
+      const statusOk = st==='all' ? true : (g.status===st);
+      const text = (g.project+' '+g.rows.map(r=>r.stage+' '+r.comment+' '+r.period).join(' ')).toLowerCase();
+      const searchOk = q==='' || text.includes(q);
+      return statusOk && searchOk;
+    });
+    buildKPIs(groups);
+    renderProjects(groups);
+    renderTimeline(groups);
+  }
+
+  search.addEventListener('input', applyFilters);
+  statusSel.addEventListener('change', applyFilters);
+  resetBtn.addEventListener('click', ()=>{ search.value=''; statusSel.value='all'; applyFilters(); });
+
+  buildKPIs(groupsAll);
+  renderProjects(groupsAll);
+  renderTimeline(groupsAll);
+})();
+</script>
+</body>
+</html>
