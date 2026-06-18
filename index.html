@@ -1,308 +1,82 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Дашборд по проектам</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    /* Небольшие улучшения таблицы */
-    .status-Готово { background:#ecfdf5; color:#065f46; }
-    .status-В\ процессе { background:#eff6ff; color:#1e40af; }
-    .status-Неизвестно { background:#fff7ed; color:#9a3412; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard — статус проектов</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--text:#172033;--muted:#697386;--line:#e7ebf3;--blue:#2454ff;--green:#0aa66a;--amber:#f2a900;--shadow:0 12px 30px rgba(23,32,51,.08)}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:linear-gradient(135deg,#f7f9ff,#eef3ff);color:var(--text)}
+.wrap{max-width:1220px;margin:0 auto;padding:34px 22px 60px} .hero{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:24px}
+h1{font-size:32px;margin:0 0 7px} .subtitle{color:var(--muted);font-size:14px} .date{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 16px;box-shadow:var(--shadow);white-space:nowrap;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:18px} .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:var(--shadow)}
+.kpi-label{color:var(--muted);font-size:13px;margin-bottom:9px} .kpi{font-size:34px;font-weight:800;letter-spacing:-.7px} .kpi small{font-size:16px;color:var(--muted)}
+.section{display:grid;grid-template-columns:1.4fr .8fr;gap:18px;margin:18px 0} h2{font-size:18px;margin:0 0 15px} .project-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.project-card{border:1px solid var(--line);border-radius:16px;padding:14px;background:#fbfcff} .project-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px} .project-head span{font-weight:750} .proj-name{font-size:12px;color:var(--muted);margin-top:9px;line-height:1.35}
+.progress{height:26px;background:#edf1f8;border-radius:999px;position:relative;overflow:hidden;border:1px solid #e2e7f0} .fill{height:100%;background:linear-gradient(90deg,var(--blue),#22b7ff);border-radius:999px} .progress span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#172033}
+.muted{color:var(--muted);font-size:12px;margin-top:8px} .mini-row,.status-row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)} .mini-row:last-child,.status-row:last-child{border-bottom:0}
+table{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:var(--shadow)} th{text-align:left;background:#f0f4ff;color:#43506a;font-size:12px;text-transform:uppercase;letter-spacing:.04em;padding:13px} td{padding:13px;border-top:1px solid var(--line);vertical-align:middle;font-size:13px} .project{max-width:420px;line-height:1.35;color:#3d4659}
+.badge{display:inline-flex;border-radius:999px;padding:7px 10px;font-weight:800;font-size:12px} .done{background:#e8f8f0;color:#08794d} .near{background:#fff5d6;color:#8a5a00}
+.footer{margin-top:14px;color:var(--muted);font-size:12px;text-align:right}
+@media(max-width:900px){.grid,.section,.project-grid{grid-template-columns:1fr}.hero{display:block}.date{margin-top:12px;display:inline-block}table{font-size:12px}td,th{padding:10px}}
+</style>
 </head>
-<body class="bg-gray-50 text-gray-900">
-  <div class="max-w-7xl mx-auto p-6 space-y-6">
-    <header class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-      <div>
-        <h1 class="text-2xl md:text-3xl font-semibold">Статусы поставок</h1>
-        <p class="text-sm text-gray-500">Интерактивная сводка по этапам: Оплата → Отправка → Подготовка документов → Таможня → Доставка</p>
-      </div>
-      <div class="flex gap-2">
-        <button id="copyBtn" class="px-3 py-2 rounded-xl bg-black text-white text-sm hover:opacity-90">Скопировать таблицу</button>
-        <button id="downloadBtn" class="px-3 py-2 rounded-xl bg-white border text-sm">Скачать CSV</button>
-      </div>
-    </header>
-
-    <!-- Фильтры -->
-    <section class="grid grid-cols-1 md:grid-cols-4 gap-3">
-      <div class="col-span-1 md:col-span-2">
-        <label class="text-xs text-gray-500">Поиск по названию</label>
-        <input id="q" type="search" placeholder="Например: Илосос, Конвейерная линия…" class="w-full mt-1 rounded-xl border px-3 py-2" />
-      </div>
-      <div>
-        <label class="text-xs text-gray-500">Статус</label>
-        <select id="status" class="w-full mt-1 rounded-xl border px-3 py-2"></select>
-      </div>
-      <div>
-        <label class="text-xs text-gray-500">Этап</label>
-        <select id="stage" class="w-full mt-1 rounded-xl border px-3 py-2"></select>
-      </div>
-    </section>
-
-    <!-- KPI карточки -->
-    <section id="kpi" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"></section>
-
-    <!-- Прогресс по проектам -->
-    <section class="space-y-2">
-      <h2 class="text-lg font-medium">Прогресс по проектам</h2>
-      <div id="projects" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3"></div>
-    </section>
-
-    <!-- Таблица -->
-    <section class="space-y-2">
-      <div class="flex items-center justify-between">
-        <h2 class="text-lg font-medium">Все этапы</h2>
-        <span id="rowsCount" class="text-sm text-gray-500"></span>
-      </div>
-      <div class="overflow-x-auto bg-white rounded-2xl shadow">
-        <table class="min-w-full text-sm" id="table">
-          <thead class="bg-gray-100 text-gray-600">
-            <tr>
-              <th class="text-left px-4 py-3">Название</th>
-              <th class="text-left px-4 py-3">Этап</th>
-              <th class="text-left px-4 py-3">Статус</th>
-              <th class="text-left px-4 py-3 whitespace-nowrap">Дата прибытия</th>
-              <th class="text-left px-4 py-3">Комментарий</th>
-            </tr>
-          </thead>
-          <tbody id="tbody"></tbody>
-        </table>
-      </div>
-    </section>
-  </div>
-
-  <script>
-    // === ДАННЫЕ (встроены) ===
-    const raw = [
-      {"Название":"Телеинспекция","Этап":"Оплата","Статус":"Готово","Дата Прибытия":"26.08.2025","Комментарий":""},
-      {"Название":"","Этап":"Отправка","Статус":"Готово","Дата Прибытия":"","Комментарий":""},
-      {"Название":"","Этап":"Подогтовка документов для таможни","Статус":"Готово","Дата Прибытия":"","Комментарий":""},
-      {"Название":"","Этап":"Таможенное оформление","Статус":"Готово","Дата Прибытия":"","Комментарий":""},
-      {"Название":"","Этап":"Доставка до Караганды","Статус":"Готово","Дата Прибытия":"","Комментарий":""},
-      {"Название":"Канапромывочная Машина Man","Этап":"Оплата","Статус":"Готово","Дата Прибытия":"","Комментарий":""},
-      {"Название":"","Этап":"Отправка","Статус":"Готово","Дата Прибытия":"","Комментарий":""},
-      {"Название":"","Этап":"Подогтовка документов для таможни","Статус":"В процессе","Дата Прибытия":"02.09.2025","Комментарий":""},
-      {"Название":"","Этап":"Таможенное оформление","Статус":"В процессе","Дата Прибытия":"","Комментарий":""},
-      {"Название":"","Этап":"Доставка до Караганды","Статус":"В процессе","Дата Прибытия":"20.09.2025-30.09.2025","Комментарий":"Ориентировочно"},
-      {"Название":"Илосос SCANIA","Этап":"Оплата","Статус":"Готово","Дата Прибытия":"","Комментарий":""},
-      {"Название":"","Этап":"Отправка","Статус":"Готово","Дата Прибытия":"","Комментарий":""},
-      {"Название":"","Этап":"Подогтовка документов для таможни","Статус":"В процессе","Дата Прибытия":"02.09.2025","Комментарий":""},
-      {"Название":"","Этап":"Таможенное оформление","Статус":"В процессе","Дата Прибытия":"","Комментарий":""},
-      {"Название":"","Этап":"Доставка до Караганды","Статус":"В процессе","Дата Прибытия":"20.09.2025-30.09.2025","Комментарий":"Ориентировочно"},
-      {"Название":"УФ Оборудование","Этап":"Оплата","Статус":"Готово","Дата Прибытия":"25.09.2025","Комментарий":""},
-      {"Название":"","Этап":"Отправка","Статус":"В процессе","Дата Прибытия":"03.09.2025-05.09.2025","Комментарий":"Запланировано"},
-      {"Название":"","Этап":"Подогтовка документов для таможни","Статус":"В процессе","Дата Прибытия":"","Комментарий":""},
-      {"Название":"","Этап":"Таможенное оформление","Статус":"В процессе","Дата Прибытия":"","Комментарий":""},
-      {"Название":"","Этап":"Доставка до Караганды","Статус":"В процессе","Дата Прибытия":"15.09.2025","Комментарий":"Ориентировочно"},
-      {"Название":"Конвейерная линия","Этап":"Оплата","Статус":"Готово","Дата Прибытия":"","Комментарий":""},
-      {"Название":"","Этап":"Отправка","Статус":"Неизвестно","Дата Прибытия":"","Комментарий":"Груз не готов"},
-      {"Название":"","Этап":"Подогтовка документов для таможни","Статус":"Неизвестно","Дата Прибытия":"","Комментарий":"Груз не готов"},
-      {"Название":"","Этап":"Таможенное оформление","Статус":"Неизвестно","Дата Прибытия":"","Комментарий":"Груз не готов"},
-      {"Название":"","Этап":"Доставка до Караганды","Статус":"Неизвестно","Дата Прибытия":"","Комментарий":"Груз не готов"}
-    ];
-
-    // Нормализация этапов + протягивание названия проекта вниз
-    const STAGE_ORDER = [
-      'Оплата',
-      'Отправка',
-      'Подготовка документов для таможни',
-      'Таможенное оформление',
-      'Доставка до Караганды'
-    ];
-
-    function normalizeStage(s){
-      if(!s) return s;
-      // Исправляем распространённую опечатку
-      return s.replace('Подогтовка', 'Подготовка');
-    }
-
-    function hydrate(rows){
-      let currentName = '';
-      return rows.map(r=>{
-        const name = r['Название'] && r['Название'].trim() ? r['Название'].trim() : currentName;
-        if (r['Название'] && r['Название'].trim()) currentName = r['Название'].trim();
-        return {
-          name,
-          stage: normalizeStage(r['Этап']?.trim()||''),
-          status: (r['Статус']||'').trim(),
-          eta: (r['Дата Прибытия']||'').trim(),
-          note: (r['Комментарий']||'').trim()
-        }
-      });
-    }
-
-    const data = hydrate(raw);
-
-    // Уникальные значения для фильтров
-    const uniq = (arr)=>[...new Set(arr.filter(Boolean))];
-    const statuses = uniq(data.map(d=>d.status));
-    const stages = uniq(data.map(d=>d.stage));
-
-    // Инициализация селектов
-    const statusSel = document.getElementById('status');
-    const stageSel = document.getElementById('stage');
-
-    function fillSelect(sel, values, placeholder){
-      sel.innerHTML = '';
-      const opt0 = document.createElement('option');
-      opt0.value = '';
-      opt0.textContent = placeholder;
-      sel.appendChild(opt0);
-      values.forEach(v=>{
-        const o = document.createElement('option');
-        o.value = v; o.textContent = v; sel.appendChild(o);
-      });
-    }
-
-    fillSelect(statusSel, statuses, 'Все статусы');
-    fillSelect(stageSel, stages, 'Все этапы');
-
-    // Фильтрация
-    const q = document.getElementById('q');
-    const tbody = document.getElementById('tbody');
-    const rowsCount = document.getElementById('rowsCount');
-
-    function applyFilters(){
-      const qs = q.value.trim().toLowerCase();
-      const st = statusSel.value;
-      const sg = stageSel.value;
-      const filtered = data.filter(d=>{
-        const okQ = !qs || d.name.toLowerCase().includes(qs);
-        const okS = !st || d.status===st;
-        const okG = !sg || d.stage===sg;
-        return okQ && okS && okG;
-      });
-      renderTable(filtered);
-      renderKPI(filtered);
-      renderProjects(filtered);
-    }
-
-    [q, statusSel, stageSel].forEach(el=>el.addEventListener('input', applyFilters));
-
-    // Рендер таблицы
-    function badge(status){
-      const cls = `inline-flex items-center px-2 py-1 rounded-full text-xs font-medium status-${status.replaceAll(' ','\\ ').replaceAll('ё','е')}`;
-      return `<span class="${cls}">${status}</span>`;
-    }
-
-    function renderTable(rows){
-      tbody.innerHTML = rows.map(r=>`
-        <tr class="border-b last:border-0">
-          <td class="px-4 py-2">${r.name||'<span class=\"text-gray-400\">—</span>'}</td>
-          <td class="px-4 py-2">${r.stage}</td>
-          <td class="px-4 py-2">${badge(r.status)}</td>
-          <td class="px-4 py-2 whitespace-nowrap">${r.eta||'<span class=\"text-gray-400\">—</span>'}</td>
-          <td class="px-4 py-2">${r.note||''}</td>
-        </tr>
-      `).join('');
-      rowsCount.textContent = `${rows.length} строк(и)`;
-    }
-
-    // KPI
-    function renderKPI(rows){
-      const wrap = document.getElementById('kpi');
-      const byStatus = Object.fromEntries(statuses.map(s=>[s,0]));
-      let projects = new Set();
-      rows.forEach(r=>{ byStatus[r.status] = (byStatus[r.status]||0)+1; projects.add(r.name); });
-      const cards = [
-        {label:'Проектов', value: projects.size},
-        ...statuses.map(s=>({label:s, value: byStatus[s]||0}))
-      ];
-      wrap.innerHTML = cards.map(c=>`
-        <div class="bg-white rounded-2xl shadow p-4">
-          <div class="text-xs text-gray-500">${c.label}</div>
-          <div class="text-2xl font-semibold">${c.value}</div>
-        </div>
-      `).join('');
-    }
-
-    // Прогресс по проектам
-    function renderProjects(rows){
-      // Группируем по проекту
-      const byProject = new Map();
-      rows.forEach(r=>{
-        if(!byProject.has(r.name)) byProject.set(r.name, []);
-        byProject.get(r.name).push(r);
-      });
-
-      const container = document.getElementById('projects');
-      const html = [];
-      byProject.forEach((items, name)=>{
-        const orderIndex = Object.fromEntries(STAGE_ORDER.map((s,i)=>[s,i]));
-        const present = new Set(items.map(i=>i.stage));
-        const done = items.filter(i=>i.status==='Готово').length;
-        const total = STAGE_ORDER.length;
-        const pct = Math.round((done/total)*100);
-
-        const nextEta = items
-          .filter(i=>i.eta)
-          .sort((a,b)=>a.eta.localeCompare(b.eta))[0]?.eta || '';
-
-        html.push(`
-          <div class="bg-white rounded-2xl shadow p-4 space-y-2">
-            <div class="flex items-center justify-between gap-2">
-              <div class="font-medium">${name||'Без названия'}</div>
-              <div class="text-xs text-gray-500">${pct}%</div>
-            </div>
-            <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-              <div style="width:${pct}%" class="h-2 bg-gray-900"></div>
-            </div>
-            <div class="flex flex-wrap gap-1">
-              ${STAGE_ORDER.map(st=>`
-                <span class="text-xs px-2 py-1 rounded-full border ${present.has(st)?'bg-gray-50':'opacity-50'}">${st}</span>
-              `).join('')}
-            </div>
-            ${nextEta ? `<div class="text-xs text-gray-500">Ближайшая дата: <span class="font-medium text-gray-700">${nextEta}</span></div>`: ''}
-          </div>
-        `);
-      });
-      container.innerHTML = html.join('');
-    }
-
-    // Копировать таблицу в буфер
-    document.getElementById('copyBtn').addEventListener('click', ()=>{
-      const rows = [['Название','Этап','Статус','Дата прибытия','Комментарий']];
-      [...tbody.querySelectorAll('tr')].forEach(tr=>{
-        const tds = [...tr.querySelectorAll('td')].map(td=>td.innerText.replace(/\n/g,' ').trim());
-        rows.push(tds);
-      });
-      const text = rows.map(r=>r.join('\t')).join('\n');
-      navigator.clipboard.writeText(text).then(()=>{
-        notify('Таблица скопирована');
-      });
-    });
-
-    // Скачать CSV
-    document.getElementById('downloadBtn').addEventListener('click', ()=>{
-      const rows = [['Название','Этап','Статус','Дата прибытия','Комментарий']];
-      [...tbody.querySelectorAll('tr')].forEach(tr=>{
-        const tds = [...tr.querySelectorAll('td')].map((td,i)=>{
-          // Удаляем визуальные артефакты из столбца статус
-          return i===2 ? td.innerText.trim() : td.innerText.replace(/\n/g,' ').trim();
-        });
-        rows.push(tds);
-      });
-      const csv = rows.map(r=>r.map(c=>`"${c.replaceAll('"','""')}"`).join(',')).join('\n');
-      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'dashboard_export.csv';
-      a.click();
-    });
-
-    // Простое уведомление
-    function notify(msg){
-      const div = document.createElement('div');
-      div.className = 'fixed bottom-4 right-4 bg-black text-white text-sm px-3 py-2 rounded-xl shadow';
-      div.textContent = msg;
-      document.body.appendChild(div);
-      setTimeout(()=>div.remove(), 1800);
-    }
-
-    // Первый рендер
-    applyFilters();
-  </script>
-</body>
-</html>
+<body><div class="wrap">
+<div class="hero"><div><h1>Dashboard по задачам и проектам</h1><div class="subtitle">Сводка статуса выполнения по текущему перечню задач</div></div><div class="date">Обновлено: 18.06.2026</div></div>
+<div class="grid">
+<div class="card"><div class="kpi-label">Всего задач</div><div class="kpi">6</div></div>
+<div class="card"><div class="kpi-label">Средний прогресс</div><div class="kpi">95.0<small>%</small></div></div>
+<div class="card"><div class="kpi-label">Завершено</div><div class="kpi">4</div></div>
+<div class="card"><div class="kpi-label">В работе / почти готово</div><div class="kpi">2</div></div>
+</div>
+<div class="section">
+<div class="card"><h2>Прогресс по проектам</h2><div class="project-grid"><div class="project-card">
+<div class="project-head"><span>25.739.000.02</span><strong>100%</strong></div>
+<div class="progress"><div class="fill" style="width:100%"></div><span>100%</span></div>
+<div class="muted">1 задач(и) · ТОО &quot;ILF</div>
+<div class="proj-name">«Строительство второй нитки магистрального газопровода «Бейнеу – Бозой – Шымкент». Дополнительный объем работ в рамках текущего проекта</div>
+</div>
+<div class="project-card">
+<div class="project-head"><span>25.739.000.08</span><strong>95%</strong></div>
+<div class="progress"><div class="fill" style="width:95.0%"></div><span>95%</span></div>
+<div class="muted">2 задач(и) · ТОО &quot;ILF</div>
+<div class="proj-name">«Строительство второй нитки магистрального газопровода «Бейнеу – Бозой – Шымкент». Дополнительный объем работ по ВОЛС</div>
+</div>
+<div class="project-card">
+<div class="project-head"><span>25.739.001.02</span><strong>90%</strong></div>
+<div class="progress"><div class="fill" style="width:90.0%"></div><span>90%</span></div>
+<div class="muted">2 задач(и) · ТОО &quot;ILF</div>
+<div class="proj-name">«Строительство второй нитки магистрального газопровода «Бейнеу – Бозой – Шымкент». Доп. Объем галереи и изменения по видам зданий и наименованиям ВП и РЭУ</div>
+</div>
+<div class="project-card">
+<div class="project-head"><span>26.815.000.04</span><strong>100%</strong></div>
+<div class="progress"><div class="fill" style="width:100%"></div><span>100%</span></div>
+<div class="muted">1 задач(и) · ТОО &quot;ТехникМонтаж</div>
+<div class="proj-name">Проектирование СЭС 600МВт</div>
+</div></div></div>
+<div class="card"><h2>Структура задач</h2><div class="mini-row"><span>Подготовка КП и Согласование Драфт КП</span><b>3</b></div>
+<div class="mini-row"><span>Подписание СТР</span><b>2</b></div>
+<div class="mini-row"><span>Обмен документов для подписания NDA</span><b>1</b></div><h2 style="margin-top:22px">Статусы</h2><div class="status-row"><span>Почти готово</span><b>2</b></div>
+<div class="status-row"><span>Завершено</span><b>4</b></div></div>
+</div>
+<h2>Детализация задач</h2>
+<table><thead><tr><th>№</th><th>Задача</th><th>Шифр</th><th>Название проекта</th><th>Заказчик</th><th>Выполнено</th><th>Статус</th></tr></thead><tbody><tr>
+<td>6</td><td><b>Подписание СТР</b></td><td>25.739.001.02</td><td class="project">«Строительство второй нитки магистрального газопровода «Бейнеу – Бозой – Шымкент». Доп. Объем галереи и изменения по видам зданий и наименованиям ВП и РЭУ</td><td>ТОО &quot;ILF</td><td><div class="progress"><div class="fill" style="width:80.0%"></div><span>80%</span></div></td><td><span class="badge near">Почти готово</span></td>
+</tr>
+<tr>
+<td>1</td><td><b>Подписание СТР</b></td><td>25.739.000.08</td><td class="project">«Строительство второй нитки магистрального газопровода «Бейнеу – Бозой – Шымкент». Дополнительный объем работ по ВОЛС</td><td>ТОО &quot;ILF</td><td><div class="progress"><div class="fill" style="width:90.0%"></div><span>90%</span></div></td><td><span class="badge near">Почти готово</span></td>
+</tr>
+<tr>
+<td>4</td><td><b>Подготовка КП и Согласование Драфт КП</b></td><td>25.739.000.02</td><td class="project">«Строительство второй нитки магистрального газопровода «Бейнеу – Бозой – Шымкент». Дополнительный объем работ в рамках текущего проекта</td><td>ТОО &quot;ILF</td><td><div class="progress"><div class="fill" style="width:100%"></div><span>100%</span></div></td><td><span class="badge done">Завершено</span></td>
+</tr>
+<tr>
+<td>2</td><td><b>Подготовка КП и Согласование Драфт КП</b></td><td>25.739.000.08</td><td class="project">«Строительство второй нитки магистрального газопровода «Бейнеу – Бозой – Шымкент». Дополнительный объем работ по ВОЛС</td><td>ТОО &quot;ILF</td><td><div class="progress"><div class="fill" style="width:100%"></div><span>100%</span></div></td><td><span class="badge done">Завершено</span></td>
+</tr>
+<tr>
+<td>5</td><td><b>Подготовка КП и Согласование Драфт КП</b></td><td>25.739.001.02</td><td class="project">«Строительство второй нитки магистрального газопровода «Бейнеу – Бозой – Шымкент». Доп. Объем галереи и изменения по видам зданий и наименованиям ВП и РЭУ</td><td>ТОО &quot;ILF</td><td><div class="progress"><div class="fill" style="width:100%"></div><span>100%</span></div></td><td><span class="badge done">Завершено</span></td>
+</tr>
+<tr>
+<td>7</td><td><b>Обмен документов для подписания NDA</b></td><td>26.815.000.04</td><td class="project">Проектирование СЭС 600МВт</td><td>ТОО &quot;ТехникМонтаж</td><td><div class="progress"><div class="fill" style="width:100%"></div><span>100%</span></div></td><td><span class="badge done">Завершено</span></td>
+</tr></tbody></table>
+<div class="footer">Источник данных: загруженный JSON файл</div>
+</div></body></html>
